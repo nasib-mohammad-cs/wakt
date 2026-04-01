@@ -1,4 +1,4 @@
-# Prayer Time App (Vanilla JS)
+# WAKT - Prayer Time App (Vanilla JS)
 
 Minimal, dependency-free prayer time UI built with HTML, CSS, and JavaScript. Designed for easy embedding into web apps, kiosks, or dashboards.
 
