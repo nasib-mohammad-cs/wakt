@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prayer Times</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #0f172a, #1e293b);
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(20px);
+      border-radius: 20px;
+      padding: 30px;
+      width: 360px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 10px;
+      font-size: 24px;
+    }
+
+    .date {
+      text-align: center;
+      font-size: 14px;
+      color: #cbd5f5;
+      margin-bottom: 20px;
+    }
+
+    .time {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .time:last-child {
+      border-bottom: none;
+    }
+
+    .label {
+      font-weight: 500;
+    }
+
+    .range {
+      font-size: 14px;
+      color: #94a3b8;
+    }
+
+    .value {
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    .loading {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 14px;
+      color: #94a3b8;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Prayer Times</h1>
+    <div class="date" id="date">Loading...</div>
+
+    <div id="times"></div>
+
+    <div class="loading" id="loading">Fetching data...</div>
+  </div>
+
+  <script>
+    const apiUrl = "https://api.aladhan.com/v1/timingsByCity?city=Dhaka&country=Bangladesh&method=8";
+
+    function to12Hour(time) {
+      let [h, m] = time.split(":");
+      h = parseInt(h);
+      const ampm = h >= 12 ? "PM" : "AM";
+      h = h % 12 || 12;
+      return `${h}:${m} ${ampm}`;
+    }
+
+    async function fetchPrayerTimes() {
+      try {
+        const res = await fetch(apiUrl);
+        const data = await res.json();
+
+        const t = data.data.timings;
+        const date = data.data.date.readable;
+
+        document.getElementById("date").innerText = date;
+
+        const container = document.getElementById("times");
+        container.innerHTML = "";
+
+        const schedule = [
+          { name: "Fajr", start: t.Fajr, end: t.Sunrise },
+          { name: "Dhuhr", start: t.Dhuhr, end: t.Asr },
+          { name: "Asr", start: t.Asr, end: t.Maghrib },
+          { name: "Maghrib", start: t.Maghrib, end: t.Isha },
+          { name: "Isha", start: t.Isha, end: "--" }
+        ];
+
+        schedule.forEach(p => {
+          const div = document.createElement("div");
+          div.className = "time";
+
+          const start = to12Hour(p.start);
+          const end = p.end !== "--" ? to12Hour(p.end) : "-";
+
+          div.innerHTML = `
+            <div>
+              <div class="label">${p.name}</div>
+              <div class="range">${start} → ${end}</div>
+            </div>
+            <div class="value">${start}</div>
+          `;
+
+          container.appendChild(div);
+        });
+
+        document.getElementById("loading").style.display = "none";
+
+      } catch (err) {
+        document.getElementById("loading").innerText = "Failed to load data";
+        console.error(err);
+      }
+    }
+
+    fetchPrayerTimes();
+  </script>
+</body>
+</html>
